@@ -1,7 +1,6 @@
-// ==================== STEP 1 ====================
-
 void main() {
-  // Variables & Data Types
+  // STEP 1
+
   var namaProduk = 'Laptop ASUS';
   namaProduk = 'Laptop Lenovo';
 
@@ -39,22 +38,19 @@ void main() {
 
   print('Raw Product: $rawProduct');
 
-
-  // ==================== STEP 2 ====================
+  // STEP 2
 
   print('\n=== STEP 2: OPERATORS ===');
 
   double hargaAwal = 100000;
   double diskon = 10000;
 
-  // Arithmetic
   print('Penjumlahan: ${hargaAwal + diskon}');
   print('Pengurangan: ${hargaAwal - diskon}');
   print('Perkalian: ${hargaAwal * 2}');
   print('Pembagian: ${hargaAwal / 2}');
   print('Modulus: ${hargaAwal % 30000}');
 
-  // Comparison
   print('Harga == 100000: ${hargaAwal == 100000}');
   print('Harga != 50000: ${hargaAwal != 50000}');
   print('Harga > 50000: ${hargaAwal > 50000}');
@@ -62,19 +58,16 @@ void main() {
   print('Harga >= 100000: ${hargaAwal >= 100000}');
   print('Harga <= 100000: ${hargaAwal <= 100000}');
 
-  // Logical
   bool bisaDitampilkan = stock > 0 && harga > 0;
 
   print('Bisa ditampilkan: $bisaDitampilkan');
   print('OR: ${stock > 0 || harga < 0}');
   print('NOT: ${!tersedia}');
 
-
-  // ==================== STEP 3 ====================
+  // STEP 3
 
   print('\n=== STEP 3: CONTROL FLOW ===');
 
-  // If-else
   if (stock == 0) {
     print('Status Stok: Habis');
   } else if (stock <= 5) {
@@ -83,7 +76,6 @@ void main() {
     print('Status Stok: Tersedia');
   }
 
-  // For
   List<double> daftarHarga = [
     100000,
     200000,
@@ -98,7 +90,6 @@ void main() {
 
   print('Total Harga: $totalHarga');
 
-  // While
   int stokSementara = 3;
 
   while (stokSementara > 0) {
@@ -108,7 +99,6 @@ void main() {
 
   print('Stok sekarang: $stokSementara');
 
-  // Switch
   String kategoriProduk = 'Elektronik';
   double persenDiskon;
 
@@ -130,8 +120,7 @@ void main() {
     'Diskon kategori $kategoriProduk: $persenDiskon%',
   );
 
-
-  // ==================== STEP 4 ====================
+  // STEP 4
 
   print('\n=== STEP 4: FUNCTIONS ===');
 
@@ -141,8 +130,7 @@ void main() {
   );
 
   print(
-    'Harga setelah diskon: '
-    '${formatRupiah(hasilDiskon)}',
+    'Harga setelah diskon: ${formatRupiah(hasilDiskon)}',
   );
 
   double hasilDiskon2 = hitungHargaSetelahDiskon(
@@ -151,8 +139,7 @@ void main() {
   );
 
   print(
-    'Harga setelah diskon 15%: '
-    '${formatRupiah(hasilDiskon2)}',
+    'Harga setelah diskon 15%: ${formatRupiah(hasilDiskon2)}',
   );
 
   double tanpaDiskon = hitungHargaSetelahDiskon(
@@ -160,12 +147,10 @@ void main() {
   );
 
   print(
-    'Harga tanpa diskon: '
-    '${formatRupiah(tanpaDiskon)}',
+    'Harga tanpa diskon: ${formatRupiah(tanpaDiskon)}',
   );
 
-
-  // ==================== STEP 5 ====================
+  // STEP 5
 
   print('\n=== STEP 5: CLASS PRODUCT & NULL SAFETY ===');
 
@@ -204,51 +189,14 @@ void main() {
 
   print('Produk Diskon: ${produk3.name}');
   print(
-    'Harga Awal: '
-    'Rp${produk3.price.toStringAsFixed(0)}',
+    'Harga Awal: Rp${produk3.price.toStringAsFixed(0)}',
   );
-  print(
-    'Diskon: '
-    '${produk3.discountPercent}%',
-  );
+  print('Diskon: ${produk3.discountPercent}%');
   print(
     'Harga Setelah Diskon: '
     'Rp${produk3.getHargaSetelahDiskon().toStringAsFixed(0)}',
   );
-
-
-  // ==================== TUGAS MANDIRI F ====================
-
-  print('\n=== TUGAS MANDIRI ===');
-
-  // Menampilkan jumlah produk
-  print('Jumlah Produk: ${daftarProduk.length}');
-
-  // Menampilkan semua produk
-  for (Product produk in daftarProduk) {
-    print(
-      '${produk.id} - '
-      '${produk.name} - '
-      'Rp${produk.price.toStringAsFixed(0)} - '
-      'Stok: ${produk.stock}',
-    );
-  }
-
-  // Menghitung total belanja
-  double totalBelanja = hitungTotalBelanja([
-    daftarProduk[0],
-    daftarProduk[1],
-    daftarProduk[2],
-  ]);
-
-  print(
-    'Total Belanja: '
-    'Rp${totalBelanja.toStringAsFixed(0)}',
-  );
 }
-
-
-// ==================== FUNCTION STEP 4 ====================
 
 double hitungHargaDiskon(
   double harga,
@@ -257,7 +205,6 @@ double hitungHargaDiskon(
   return harga - (harga * persenDiskon / 100);
 }
 
-
 double hitungHargaSetelahDiskon(
   double harga, {
   double persenDiskon = 0,
@@ -265,12 +212,8 @@ double hitungHargaSetelahDiskon(
   return harga - (harga * persenDiskon / 100);
 }
 
-
 String formatRupiah(double harga) =>
     'Rp${harga.toStringAsFixed(0)}';
-
-
-// ==================== CLASS PRODUCT ====================
 
 class Product {
   final String id;
@@ -279,8 +222,6 @@ class Product {
   final String imageUrl;
   final String category;
   int stock;
-
-  // Nullable
   String? description;
 
   Product({
@@ -293,7 +234,6 @@ class Product {
     this.description,
   });
 
-  // Method tambahan
   String getStatusStok() {
     if (stock == 0) {
       return 'Habis';
@@ -309,24 +249,18 @@ class Product {
     print('ID: $id');
     print('Nama: $name');
     print(
-      'Harga: '
-      'Rp${price.toStringAsFixed(0)}',
+      'Harga: Rp${price.toStringAsFixed(0)}',
     );
     print('Kategori: $category');
     print('Stok: $stock');
     print('Status: ${getStatusStok()}');
-
     print(
       'Deskripsi: '
       '${description ?? "Tidak ada deskripsi"}',
     );
-
     print('-------------------------');
   }
 }
-
-
-// ==================== INHERITANCE ====================
 
 class DiscountedProduct extends Product {
   final double discountPercent;
@@ -345,97 +279,4 @@ class DiscountedProduct extends Product {
   double getHargaSetelahDiskon() {
     return price - (price * discountPercent / 100);
   }
-}
-
-
-// ==================== TUGAS MANDIRI F NOMOR 2 ====================
-
-// List minimal 8 produk
-List<Product> daftarProduk = [
-  Product(
-    id: 'P001',
-    name: 'Laptop ASUS',
-    price: 7500000,
-    imageUrl: 'laptop.jpg',
-    category: 'Elektronik',
-    stock: 10,
-  ),
-
-  Product(
-    id: 'P002',
-    name: 'Mouse Wireless',
-    price: 150000,
-    imageUrl: 'mouse.jpg',
-    category: 'Elektronik',
-    stock: 5,
-  ),
-
-  Product(
-    id: 'P003',
-    name: 'Keyboard Mechanical',
-    price: 500000,
-    imageUrl: 'keyboard.jpg',
-    category: 'Elektronik',
-    stock: 7,
-  ),
-
-  Product(
-    id: 'P004',
-    name: 'Headset Gaming',
-    price: 350000,
-    imageUrl: 'headset.jpg',
-    category: 'Elektronik',
-    stock: 8,
-  ),
-
-  Product(
-    id: 'P005',
-    name: 'Kaos Polos',
-    price: 100000,
-    imageUrl: 'kaos.jpg',
-    category: 'Fashion',
-    stock: 15,
-  ),
-
-  Product(
-    id: 'P006',
-    name: 'Celana Jeans',
-    price: 250000,
-    imageUrl: 'jeans.jpg',
-    category: 'Fashion',
-    stock: 6,
-  ),
-
-  Product(
-    id: 'P007',
-    name: 'Sepatu Sneakers',
-    price: 450000,
-    imageUrl: 'sepatu.jpg',
-    category: 'Fashion',
-    stock: 4,
-  ),
-
-  Product(
-    id: 'P008',
-    name: 'Tumbler',
-    price: 120000,
-    imageUrl: 'tumbler.jpg',
-    category: 'Aksesoris',
-    stock: 12,
-  ),
-];
-
-
-// ==================== TUGAS MANDIRI F NOMOR 3 ====================
-
-double hitungTotalBelanja(
-  List<Product> keranjang,
-) {
-  double total = 0;
-
-  for (Product produk in keranjang) {
-    total += produk.price;
-  }
-
-  return total;
 }
