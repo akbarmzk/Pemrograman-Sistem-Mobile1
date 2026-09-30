@@ -1,3 +1,4 @@
+
 import 'package:flutter/material.dart';
 import 'screens/home_page.dart';
 
@@ -14,8 +15,8 @@ class TokoKitaApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       title: 'TokoKita',
       theme: ThemeData(
+        primarySwatch: Colors.blue,
         useMaterial3: true,
-        colorSchemeSeed: Colors.blue,
       ),
       home: const HomePage(),
     );

@@ -1,9 +1,6 @@
 
 import 'package:flutter/material.dart';
-
 import '../models/product.dart';
-import 'price_label.dart';
-import 'stock_badge.dart';
 
 class ProductCard extends StatefulWidget {
   final Product product;
@@ -20,187 +17,286 @@ class ProductCard extends StatefulWidget {
 class _ProductCardState extends State<ProductCard> {
   bool isFavorite = false;
 
-  @override
-  void initState() {
-    super.initState();
-    print('ProductCard initState: ${widget.product.name}');
+  String formatRupiah(num value) {
+    final text = value.toInt().toString();
+
+    final formatted = text.replaceAllMapped(
+      RegExp(r'\B(?=(\d{3})+(?!\d))'),
+      (match) => '.',
+    );
+
+    return 'Rp$formatted';
   }
 
   @override
   Widget build(BuildContext context) {
-    print('ProductCard build: ${widget.product.name}');
+    final product = widget.product;
+
+    final bool isDiscounted =
+        product is DiscountedProduct;
+
+    final bool isOutOfStock =
+        product.stock <= 0;
+
+    final int discountPercent = isDiscounted
+        ? (product as DiscountedProduct).discountPercent
+        : 0;
+
+    final double finalPrice =
+        product.price * (100 - discountPercent) / 100;
 
     return Container(
-      margin: const EdgeInsets.symmetric(
-        horizontal: 16,
-        vertical: 8,
-      ),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.1),
+            color: Colors.black.withValues(alpha: 0.06),
             blurRadius: 8,
-            offset: const Offset(0, 4),
+            offset: const Offset(0, 3),
           ),
         ],
       ),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Gambar produk dan badge
-            Stack(
-              clipBehavior: Clip.none,
-              children: [
-                Container(
-                  width: 90,
-                  height: 90,
-                  decoration: BoxDecoration(
-                    color: Colors.grey.shade200,
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: const Icon(
-                    Icons.image,
-                    size: 45,
-                    color: Colors.grey,
-                  ),
-                ),
+      clipBehavior: Clip.antiAlias,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Gambar dan tombol favorit
+          Stack(
+            children: [
+              Container(
+                height: 140,
+                width: double.infinity,
+                color: const Color(0xFFF0F2F5),
+                child: product.imageUrl.isNotEmpty
+                    ? Image.network(
+                        product.imageUrl,
+                        fit: BoxFit.contain,
+                        errorBuilder: (
+                          context,
+                          error,
+                          stackTrace,
+                        ) {
+                          return const Icon(
+                            Icons.devices,
+                            size: 55,
+                            color: Colors.blueGrey,
+                          );
+                        },
+                      )
+                    : const Icon(
+                        Icons.devices,
+                        size: 55,
+                        color: Colors.blueGrey,
+                      ),
+              ),
 
-                // Badge diskon di kiri atas
-                if (widget.product is DiscountedProduct)
-                  Positioned(
-                    top: -8,
-                    left: -8,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 8,
-                        vertical: 4,
-                      ),
-                      decoration: BoxDecoration(
-                        color: Colors.red,
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Text(
-                        '${(widget.product as DiscountedProduct).discountPercent}% OFF',
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 10,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
-                  ),
-
-                // Badge stok di kanan bawah
+              // Badge diskon
+              if (isDiscounted)
                 Positioned(
-                  bottom: -6,
-                  right: -6,
+                  top: 8,
+                  left: 8,
                   child: Container(
                     padding: const EdgeInsets.symmetric(
-                      horizontal: 7,
-                      vertical: 4,
+                      horizontal: 9,
+                      vertical: 5,
                     ),
                     decoration: BoxDecoration(
-                      color: widget.product.stock > 0
-                          ? Colors.green
-                          : Colors.red,
+                      color: Colors.red,
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Text(
-                      widget.product.stock > 0
-                          ? 'Stok: ${widget.product.stock}'
-                          : 'Habis',
+                      '-$discountPercent%',
                       style: const TextStyle(
                         color: Colors.white,
-                        fontSize: 9,
+                        fontSize: 12,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
                   ),
                 ),
-              ],
-            ),
 
-            const SizedBox(width: 16),
+              // Tombol love / favorit
+              Positioned(
+                top: 8,
+                right: 8,
+                child: Material(
+                  color: Colors.white,
+                  shape: const CircleBorder(),
+                  elevation: 2,
+                  child: IconButton(
+                    onPressed: () {
+                      setState(() {
+                        isFavorite = !isFavorite;
+                      });
 
-            // Informasi produk
-            Expanded(
+                      ScaffoldMessenger.of(context)
+                          .hideCurrentSnackBar();
+
+                      ScaffoldMessenger.of(context)
+                          .showSnackBar(
+                        SnackBar(
+                          content: Text(
+                            isFavorite
+                                ? '${product.name} ditambahkan ke favorit'
+                                : '${product.name} dihapus dari favorit',
+                          ),
+                          duration: const Duration(
+                            seconds: 1,
+                          ),
+                        ),
+                      );
+                    },
+                    icon: Icon(
+                      isFavorite
+                          ? Icons.favorite
+                          : Icons.favorite_border,
+                      color: isFavorite
+                          ? Colors.red
+                          : Colors.grey,
+                      size: 22,
+                    ),
+                    constraints: const BoxConstraints(
+                      minWidth: 40,
+                      minHeight: 40,
+                    ),
+                    padding: EdgeInsets.zero,
+                    tooltip: isFavorite
+                        ? 'Hapus dari favorit'
+                        : 'Tambah ke favorit',
+                  ),
+                ),
+              ),
+
+              // Badge stok
+              Positioned(
+                bottom: 8,
+                right: 8,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 5,
+                  ),
+                  decoration: BoxDecoration(
+                    color: isOutOfStock
+                        ? Colors.red
+                        : Colors.green,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Text(
+                    isOutOfStock
+                        ? 'Habis'
+                        : 'Stok: ${product.stock}',
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 11,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+
+          // Informasi produk
+          Expanded(
+            child: Padding(
+              padding: const EdgeInsets.all(12),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    widget.product.name,
+                    product.category,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      fontSize: 11,
+                      color: Colors.blueGrey,
+                    ),
+                  ),
+
+                  const SizedBox(height: 5),
+
+                  Text(
+                    product.name,
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                     style: const TextStyle(
-                      fontSize: 18,
+                      fontSize: 14,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+
+                  const Spacer(),
+
+                  if (isDiscounted)
+                    Text(
+                      formatRupiah(product.price),
+                      style: const TextStyle(
+                        fontSize: 11,
+                        color: Colors.grey,
+                        decoration:
+                            TextDecoration.lineThrough,
+                      ),
+                    ),
+
+                  Text(
+                    formatRupiah(finalPrice),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      fontSize: 15,
+                      color: Colors.blue,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
 
                   const SizedBox(height: 8),
 
-                  PriceLabel(
-                    harga: widget.product.price,
-                  ),
-
-                  const SizedBox(height: 8),
-
-                  StockBadge(
-                    stock: widget.product.stock,
-                  ),
-
-                  const SizedBox(height: 8),
-
-                  Text(
-                    widget.product.category,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
-                      color: Colors.grey.shade600,
+                  SizedBox(
+                    width: double.infinity,
+                    height: 34,
+                    child: ElevatedButton(
+                      onPressed: isOutOfStock
+                          ? null
+                          : () {
+                              ScaffoldMessenger.of(context)
+                                  .showSnackBar(
+                                SnackBar(
+                                  content: Text(
+                                    '${product.name} dipilih',
+                                  ),
+                                ),
+                              );
+                            },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.blue,
+                        foregroundColor: Colors.white,
+                        disabledBackgroundColor:
+                            Colors.grey.shade300,
+                        disabledForegroundColor: Colors.grey,
+                        padding: EdgeInsets.zero,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                      ),
+                      child: Text(
+                        isOutOfStock
+                            ? 'Stok Habis'
+                            : 'Beli',
+                        style: const TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
                     ),
                   ),
                 ],
               ),
             ),
-
-            // Tombol favorit
-            IconButton(
-              constraints: const BoxConstraints(
-                minWidth: 40,
-                minHeight: 40,
-              ),
-              padding: EdgeInsets.zero,
-              onPressed: () {
-                setState(() {
-                  isFavorite = !isFavorite;
-                });
-
-                print(
-                  'Favorite ${widget.product.name}: $isFavorite',
-                );
-              },
-              icon: Icon(
-                isFavorite
-                    ? Icons.favorite
-                    : Icons.favorite_border,
-                color: isFavorite
-                    ? Colors.red
-                    : Colors.grey,
-              ),
-            ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
-  }
-
-  @override
-  void dispose() {
-    print('ProductCard dispose: ${widget.product.name}');
-    super.dispose();
   }
 }
