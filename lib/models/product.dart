@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 
 class Product {
   final String id;
@@ -29,4 +30,106 @@ class DiscountedProduct extends Product {
     required super.stock,
     required this.discountPercent,
   });
+}
+
+// =====================================================
+// CART ITEM
+// =====================================================
+
+class CartItem {
+  final Product product;
+  int quantity;
+
+  CartItem({
+    required this.product,
+    required this.quantity,
+  });
+
+  double get subtotal {
+    return product.price * quantity;
+  }
+}
+
+// =====================================================
+// CART CONTROLLER
+// =====================================================
+
+class CartController extends ChangeNotifier {
+  static final CartController instance = CartController._internal();
+
+  CartController._internal();
+
+  final Map<String, CartItem> _items = {};
+
+  List<CartItem> get items {
+    return _items.values.toList();
+  }
+
+  int get totalItems {
+    int total = 0;
+
+    for (final item in _items.values) {
+      total += item.quantity;
+    }
+
+    return total;
+  }
+
+  double get totalPrice {
+    double total = 0;
+
+    for (final item in _items.values) {
+      total += item.subtotal;
+    }
+
+    return total;
+  }
+
+  void addToCart(Product product, int quantity) {
+    if (_items.containsKey(product.id)) {
+      _items[product.id]!.quantity += quantity;
+    } else {
+      _items[product.id] = CartItem(
+        product: product,
+        quantity: quantity,
+      );
+    }
+
+    notifyListeners();
+  }
+
+  void increaseQuantity(String productId) {
+    final item = _items[productId];
+
+    if (item == null) return;
+
+    if (item.quantity < item.product.stock) {
+      item.quantity++;
+      notifyListeners();
+    }
+  }
+
+  void decreaseQuantity(String productId) {
+    final item = _items[productId];
+
+    if (item == null) return;
+
+    if (item.quantity > 1) {
+      item.quantity--;
+    } else {
+      _items.remove(productId);
+    }
+
+    notifyListeners();
+  }
+
+  void removeFromCart(String productId) {
+    _items.remove(productId);
+    notifyListeners();
+  }
+
+  void clearCart() {
+    _items.clear();
+    notifyListeners();
+  }
 }

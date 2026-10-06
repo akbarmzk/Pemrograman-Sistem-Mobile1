@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 import '../models/product.dart';
 
@@ -17,15 +16,24 @@ class ProductCard extends StatefulWidget {
 class _ProductCardState extends State<ProductCard> {
   bool isFavorite = false;
 
-  String formatRupiah(num value) {
-    final text = value.toInt().toString();
+  Future<void> openProductDetail() async {
+    final product = widget.product;
 
-    final formatted = text.replaceAllMapped(
-      RegExp(r'\B(?=(\d{3})+(?!\d))'),
-      (match) => '.',
+    final result = await Navigator.pushNamed(
+      context,
+      '/detail',
+      arguments: product,
     );
 
-    return 'Rp$formatted';
+    if (result != null && context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            '${product.name} ditambahkan sebanyak $result item',
+          ),
+        ),
+      );
+    }
   }
 
   @override
@@ -35,257 +43,147 @@ class _ProductCardState extends State<ProductCard> {
     final bool isDiscounted =
         product is DiscountedProduct;
 
-    final bool isOutOfStock =
-        product.stock <= 0;
+    double finalPrice = product.price;
+    int discountPercent = 0;
 
-    final int discountPercent = isDiscounted
-        ? (product as DiscountedProduct).discountPercent
-        : 0;
+    if (isDiscounted) {
+      discountPercent =
+          (product as DiscountedProduct).discountPercent;
 
-    final double finalPrice =
-        product.price * (100 - discountPercent) / 100;
+      finalPrice =
+          product.price * (1 - discountPercent / 100);
+    }
 
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.06),
-            blurRadius: 8,
-            offset: const Offset(0, 3),
-          ),
-        ],
-      ),
-      clipBehavior: Clip.antiAlias,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Gambar dan tombol favorit
-          Stack(
-            children: [
-              Container(
-                height: 140,
-                width: double.infinity,
-                color: const Color(0xFFF0F2F5),
-                child: product.imageUrl.isNotEmpty
-                    ? Image.network(
-                        product.imageUrl,
-                        fit: BoxFit.contain,
-                        errorBuilder: (
-                          context,
-                          error,
-                          stackTrace,
-                        ) {
-                          return const Icon(
-                            Icons.devices,
-                            size: 55,
-                            color: Colors.blueGrey,
-                          );
-                        },
-                      )
-                    : const Icon(
-                        Icons.devices,
-                        size: 55,
-                        color: Colors.blueGrey,
-                      ),
-              ),
-
-              // Badge diskon
-              if (isDiscounted)
-                Positioned(
-                  top: 8,
-                  left: 8,
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 9,
-                      vertical: 5,
-                    ),
-                    decoration: BoxDecoration(
-                      color: Colors.red,
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Text(
-                      '-$discountPercent%',
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 12,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
-                ),
-
-              // Tombol love / favorit
-              Positioned(
-                top: 8,
-                right: 8,
-                child: Material(
-                  color: Colors.white,
-                  shape: const CircleBorder(),
-                  elevation: 2,
-                  child: IconButton(
-                    onPressed: () {
-                      setState(() {
-                        isFavorite = !isFavorite;
-                      });
-
-                      ScaffoldMessenger.of(context)
-                          .hideCurrentSnackBar();
-
-                      ScaffoldMessenger.of(context)
-                          .showSnackBar(
-                        SnackBar(
-                          content: Text(
-                            isFavorite
-                                ? '${product.name} ditambahkan ke favorit'
-                                : '${product.name} dihapus dari favorit',
-                          ),
-                          duration: const Duration(
-                            seconds: 1,
-                          ),
-                        ),
-                      );
-                    },
-                    icon: Icon(
-                      isFavorite
-                          ? Icons.favorite
-                          : Icons.favorite_border,
-                      color: isFavorite
-                          ? Colors.red
-                          : Colors.grey,
-                      size: 22,
-                    ),
-                    constraints: const BoxConstraints(
-                      minWidth: 40,
-                      minHeight: 40,
-                    ),
-                    padding: EdgeInsets.zero,
-                    tooltip: isFavorite
-                        ? 'Hapus dari favorit'
-                        : 'Tambah ke favorit',
-                  ),
-                ),
-              ),
-
-              // Badge stok
-              Positioned(
-                bottom: 8,
-                right: 8,
-                child: Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 8,
-                    vertical: 5,
-                  ),
-                  decoration: BoxDecoration(
-                    color: isOutOfStock
-                        ? Colors.red
-                        : Colors.green,
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Text(
-                    isOutOfStock
-                        ? 'Habis'
-                        : 'Stok: ${product.stock}',
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 11,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          ),
-
-          // Informasi produk
-          Expanded(
-            child: Padding(
-              padding: const EdgeInsets.all(12),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+    return InkWell(
+      borderRadius: BorderRadius.circular(16),
+      onTap: openProductDetail,
+      child: Card(
+        elevation: 2,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+        ),
+        clipBehavior: Clip.antiAlias,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // =========================
+            // GAMBAR PRODUK
+            // =========================
+            Expanded(
+              child: Stack(
                 children: [
-                  Text(
-                    product.category,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
-                      fontSize: 11,
-                      color: Colors.blueGrey,
-                    ),
-                  ),
-
-                  const SizedBox(height: 5),
-
-                  Text(
-                    product.name,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-
-                  const Spacer(),
-
-                  if (isDiscounted)
-                    Text(
-                      formatRupiah(product.price),
-                      style: const TextStyle(
-                        fontSize: 11,
-                        color: Colors.grey,
-                        decoration:
-                            TextDecoration.lineThrough,
-                      ),
-                    ),
-
-                  Text(
-                    formatRupiah(finalPrice),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
-                      fontSize: 15,
-                      color: Colors.blue,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-
-                  const SizedBox(height: 8),
-
-                  SizedBox(
+                  Container(
                     width: double.infinity,
-                    height: 34,
-                    child: ElevatedButton(
-                      onPressed: isOutOfStock
-                          ? null
-                          : () {
-                              ScaffoldMessenger.of(context)
-                                  .showSnackBar(
-                                SnackBar(
-                                  content: Text(
-                                    '${product.name} dipilih',
-                                  ),
+                    color: Colors.grey.shade100,
+                    child: product.imageUrl.isNotEmpty
+                        ? Image.network(
+                            product.imageUrl,
+                            fit: BoxFit.contain,
+                            errorBuilder: (
+                              context,
+                              error,
+                              stackTrace,
+                            ) {
+                              return const Center(
+                                child: Icon(
+                                  Icons.devices,
+                                  size: 70,
+                                  color: Colors.grey,
                                 ),
                               );
                             },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.blue,
-                        foregroundColor: Colors.white,
-                        disabledBackgroundColor:
-                            Colors.grey.shade300,
-                        disabledForegroundColor: Colors.grey,
-                        padding: EdgeInsets.zero,
-                        shape: RoundedRectangleBorder(
+                          )
+                        : const Center(
+                            child: Icon(
+                              Icons.devices,
+                              size: 70,
+                              color: Colors.grey,
+                            ),
+                          ),
+                  ),
+
+                  // =========================
+                  // BADGE DISKON
+                  // =========================
+                  if (isDiscounted)
+                    Positioned(
+                      top: 10,
+                      left: 10,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 5,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Colors.red,
                           borderRadius: BorderRadius.circular(8),
                         ),
+                        child: Text(
+                          '-$discountPercent%',
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ),
+
+                  // =========================
+                  // FAVORITE
+                  // =========================
+                  Positioned(
+                    top: 8,
+                    right: 8,
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: Colors.white.withValues(
+                          alpha: 0.9,
+                        ),
+                        shape: BoxShape.circle,
+                      ),
+                      child: IconButton(
+                        onPressed: () {
+                          setState(() {
+                            isFavorite = !isFavorite;
+                          });
+                        },
+                        icon: Icon(
+                          isFavorite
+                              ? Icons.favorite
+                              : Icons.favorite_border,
+                          color: isFavorite
+                              ? Colors.red
+                              : Colors.grey,
+                        ),
+                      ),
+                    ),
+                  ),
+
+                  // =========================
+                  // STOK
+                  // =========================
+                  Positioned(
+                    bottom: 8,
+                    right: 8,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 5,
+                      ),
+                      decoration: BoxDecoration(
+                        color: product.stock > 0
+                            ? Colors.green.shade600
+                            : Colors.red.shade600,
+                        borderRadius: BorderRadius.circular(8),
                       ),
                       child: Text(
-                        isOutOfStock
-                            ? 'Stok Habis'
-                            : 'Beli',
+                        product.stock > 0
+                            ? 'Stok ${product.stock}'
+                            : 'Habis',
                         style: const TextStyle(
-                          fontSize: 12,
+                          color: Colors.white,
+                          fontSize: 11,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
@@ -294,8 +192,88 @@ class _ProductCardState extends State<ProductCard> {
                 ],
               ),
             ),
-          ),
-        ],
+
+            // =========================
+            // INFORMASI PRODUK
+            // =========================
+            Padding(
+              padding: const EdgeInsets.fromLTRB(
+                12,
+                10,
+                12,
+                12,
+              ),
+              child: Column(
+                crossAxisAlignment:
+                    CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    product.category,
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: Colors.blue.shade700,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+
+                  const SizedBox(height: 4),
+
+                  Text(
+                    product.name,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+
+                  const SizedBox(height: 6),
+
+                  if (isDiscounted)
+                    Text(
+                      'Rp ${product.price.toStringAsFixed(0)}',
+                      style: const TextStyle(
+                        fontSize: 12,
+                        color: Colors.grey,
+                        decoration:
+                            TextDecoration.lineThrough,
+                      ),
+                    ),
+
+                  Text(
+                    'Rp ${finalPrice.toStringAsFixed(0)}',
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.blue,
+                    ),
+                  ),
+
+                  const SizedBox(height: 8),
+
+                  // =========================
+                  // BELI SEKARANG
+                  // =========================
+                  SizedBox(
+                    width: double.infinity,
+                    height: 38,
+                    child: ElevatedButton(
+                      onPressed: product.stock > 0
+                          ? openProductDetail
+                          : null,
+                      child: Text(
+                        product.stock > 0
+                            ? 'Beli Sekarang'
+                            : 'Stok Habis',
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
