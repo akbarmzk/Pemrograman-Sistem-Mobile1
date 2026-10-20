@@ -1,4 +1,8 @@
+
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+
+import '../controllers/cart_controller.dart';
 import '../models/product.dart';
 
 class ProductDetailPage extends StatefulWidget {
@@ -18,50 +22,43 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
 
   Product get product => widget.product;
 
-  double get totalPrice {
-    return product.price * quantity;
-  }
+  double get totalPrice => product.price * quantity;
 
   void increaseQuantity() {
     if (quantity < product.stock) {
-      setState(() {
-        quantity++;
-      });
+      setState(() => quantity++);
     }
   }
 
   void decreaseQuantity() {
     if (quantity > 1) {
-      setState(() {
-        quantity--;
-      });
+      setState(() => quantity--);
     }
   }
 
   void addToCart() {
-    CartController.instance.addToCart(
-      product,
-      quantity,
+    final cart = Get.find<CartController>();
+    final oldTotal = cart.totalItem;
+
+    cart.addToCart(product, quantity);
+
+    if (cart.totalItem == oldTotal &&
+        cart.items.every((item) => item.product.id != product.id ||
+            item.quantity < quantity)) {
+      return;
+    }
+
+    Get.snackbar(
+      'TokoKita',
+      '$quantity ${product.name} ditambahkan ke keranjang',
+      snackPosition: SnackPosition.BOTTOM,
     );
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          '$quantity ${product.name} berhasil ditambahkan ke keranjang',
-        ),
-      ),
-    );
-
-    Navigator.pop(
-      context,
-      quantity,
-    );
+    Get.back();
   }
 
   String formatRupiah(double value) {
-    final formatted = value
-        .toStringAsFixed(0)
-        .replaceAllMapped(
+    final formatted = value.toStringAsFixed(0).replaceAllMapped(
           RegExp(r'(\d)(?=(\d{3})+(?!\d))'),
           (match) => '${match[1]}.',
         );
@@ -77,19 +74,19 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
       appBar: AppBar(
         title: const Text(
           'Detail Produk',
-          style: TextStyle(
-            fontWeight: FontWeight.bold,
-          ),
+          style: TextStyle(fontWeight: FontWeight.bold),
         ),
         centerTitle: true,
+        leading: IconButton(
+          onPressed: Get.back,
+          icon: const Icon(Icons.arrow_back),
+        ),
       ),
-
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // FOTO PRODUK
             Container(
               width: double.infinity,
               height: 260,
@@ -103,17 +100,11 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                       child: Image.network(
                         product.imageUrl,
                         fit: BoxFit.cover,
-                        errorBuilder: (
-                          context,
-                          error,
-                          stackTrace,
-                        ) {
-                          return const Icon(
-                            Icons.devices,
-                            size: 100,
-                            color: Colors.grey,
-                          );
-                        },
+                        errorBuilder: (_, __, ___) => const Icon(
+                          Icons.devices,
+                          size: 100,
+                          color: Colors.grey,
+                        ),
                       ),
                     )
                   : const Icon(
@@ -122,10 +113,7 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                       color: Colors.grey,
                     ),
             ),
-
             const SizedBox(height: 20),
-
-            // KATEGORI
             Text(
               product.category,
               style: const TextStyle(
@@ -133,10 +121,7 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                 fontWeight: FontWeight.w600,
               ),
             ),
-
             const SizedBox(height: 8),
-
-            // NAMA
             Text(
               product.name,
               style: const TextStyle(
@@ -144,10 +129,7 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                 fontWeight: FontWeight.bold,
               ),
             ),
-
             const SizedBox(height: 12),
-
-            // HARGA
             Text(
               formatRupiah(product.price),
               style: const TextStyle(
@@ -156,19 +138,14 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                 color: Colors.blue,
               ),
             ),
-
             const SizedBox(height: 12),
-
-            // STOK
             Row(
               children: [
                 Icon(
                   outOfStock
                       ? Icons.remove_shopping_cart
                       : Icons.inventory_2_outlined,
-                  color: outOfStock
-                      ? Colors.red
-                      : Colors.green,
+                  color: outOfStock ? Colors.red : Colors.green,
                 ),
                 const SizedBox(width: 8),
                 Text(
@@ -176,18 +153,13 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                       ? 'Stok habis'
                       : 'Stok tersedia: ${product.stock}',
                   style: TextStyle(
-                    color: outOfStock
-                        ? Colors.red
-                        : Colors.green,
+                    color: outOfStock ? Colors.red : Colors.green,
                     fontWeight: FontWeight.w600,
                   ),
                 ),
               ],
             ),
-
             const SizedBox(height: 20),
-
-            // DESKRIPSI
             const Text(
               'Deskripsi Produk',
               style: TextStyle(
@@ -195,9 +167,7 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                 fontWeight: FontWeight.bold,
               ),
             ),
-
             const SizedBox(height: 8),
-
             Text(
               'Produk ${product.name} merupakan salah satu produk '
               'elektronik yang tersedia di TokoKita. Produk ini cocok '
@@ -209,10 +179,7 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                 height: 1.5,
               ),
             ),
-
             const SizedBox(height: 24),
-
-            // JUMLAH
             const Text(
               'Jumlah',
               style: TextStyle(
@@ -220,21 +187,16 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                 fontWeight: FontWeight.bold,
               ),
             ),
-
             const SizedBox(height: 12),
-
             Row(
               children: [
                 IconButton(
-                  onPressed: quantity > 1
-                      ? decreaseQuantity
-                      : null,
+                  onPressed: quantity > 1 ? decreaseQuantity : null,
                   icon: const Icon(Icons.remove),
                   style: IconButton.styleFrom(
                     backgroundColor: Colors.grey.shade200,
                   ),
                 ),
-
                 SizedBox(
                   width: 60,
                   child: Text(
@@ -246,11 +208,9 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                     ),
                   ),
                 ),
-
                 IconButton(
-                  onPressed: quantity < product.stock
-                      ? increaseQuantity
-                      : null,
+                  onPressed:
+                      quantity < product.stock ? increaseQuantity : null,
                   icon: const Icon(Icons.add),
                   style: IconButton.styleFrom(
                     backgroundColor: Colors.grey.shade200,
@@ -258,10 +218,7 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                 ),
               ],
             ),
-
             const SizedBox(height: 24),
-
-            // TOTAL
             Container(
               width: double.infinity,
               padding: const EdgeInsets.all(16),
@@ -270,8 +227,7 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Row(
-                mainAxisAlignment:
-                    MainAxisAlignment.spaceBetween,
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   const Text(
                     'Total',
@@ -291,20 +247,13 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                 ],
               ),
             ),
-
             const SizedBox(height: 20),
-
-            // TAMBAH KE KERANJANG
             SizedBox(
               width: double.infinity,
               height: 52,
               child: ElevatedButton.icon(
-                onPressed: outOfStock
-                    ? null
-                    : addToCart,
-                icon: const Icon(
-                  Icons.shopping_cart,
-                ),
+                onPressed: outOfStock ? null : addToCart,
+                icon: const Icon(Icons.shopping_cart),
                 label: const Text(
                   'Tambah ke Keranjang',
                   style: TextStyle(
@@ -314,7 +263,6 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                 ),
               ),
             ),
-
             const SizedBox(height: 20),
           ],
         ),
